@@ -24,6 +24,21 @@ from flair.data import Sentence
 from flair.models import SequenceTagger
 from nltk.corpus import wordnet as wn
 from find_job_titles import Finder
+import nltk
+nltk.download('omw-1.4')
+
+#TODO
+#contact number with extension
+#LinkedinURL
+#Summery
+#skills
+#jobs ordering
+#certifications
+#activities - volenteering,organisation
+# miscallenaious
+# address
+
+#internship - full time in job segregartion
 
 
 ## Changes done in this version - Sped up version to run in 1-2 seconds on average
@@ -33,7 +48,7 @@ application = Flask(__name__)
 
 @application.route('/', methods=['GET'])
 def test():
-    return jsonify({"result": "Hello world"})
+    return jsonify({"result": "Hello world!!"})
 
 
 glove = spacy.load('en_core_web_lg') 
@@ -131,11 +146,23 @@ def getParsedData():
             '(jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|jun(e)?|jul(y)?|aug(ust)?|sep(tember)?|oct(ober)?|nov(ember)?|dec(ember)?)(\s|\S)?(\d{2,4})(.*(jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|jun(e)?|jul(y)?|aug(ust)?|sep(tember)?|oct(ober)?|nov(ember)?|dec(ember)?)(\s|\S)(\d{2,4}))?', '', school).title())
     
 
-    if links != []:
-        linkedIn.append(getLinkedIn(links))
-        gitHub.append(getGithub(links))
+    linkLinkedIn = get_linkedInLinks(document)
+    print("------------------------------")
+    print(document)
+    print("---------------------------------")
+    if len(linkLinkedIn) > 0:
+        linkedIn.append(linkLinkedIn[0])
+    elif len(get_linkedInLinks(links[-1]))>0:
+        linkedIn.append(get_linkedInLinks(links[-1])[0])
     else:
         linkedIn.append('')
+
+
+    if links != []:
+        #linkedIn.append(getLinkedIn(links))
+        gitHub.append(getGithub(links))
+    else:
+        #linkedIn.append('')
         gitHub.append('')
 
     if len(experiences)>0 and len(experiences[0])>2:
@@ -499,6 +526,17 @@ def open_doc_file(file_name,nlp):
 
 
 
+def get_linkedInLinks(document):
+    # A function to extract a linkedin from the text of a resume using regex
+    LinkedInLinks = []
+    pattern = re.compile(r'(.*inkedin\.com/in/.*)')
+    for line in document:
+        matches = pattern.findall(line)
+        for mat in matches:
+            if len(mat) > 0:
+                LinkedInLinks.append(mat)
+    return (LinkedInLinks)
+
 
 
 def get_email(document):
@@ -514,12 +552,11 @@ def get_email(document):
     return (emails)
 
 
-
-
 def get_phone_no(document):
     # A function to extract a phone number from the text of a resume using regex 
 
-    mob_num_regex = r'(\d{3}[-\.\s]??\d{3}[-\.\s]??\d{4}|\(\d{3}\)[-\.\s]*\d{3}[-\.\s]??\d{4}|\d{5}[-\.\s]??\d{4})'
+    #mob_num_regex = r'(\d{3}[-\.\s]??\d{3}[-\.\s]??\d{4}|\(\d{3}\)[-\.\s]*\d{3}[-\.\s]??\d{4}|\d{5}[-\.\s]??\d{4})'
+    mob_num_regex = r'\b(?:\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b'
     pattern = re.compile(mob_num_regex)
     matches = []
     for line in document:
